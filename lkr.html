@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Vector Cross Product Visualization</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <p>Vector a (red): length = |a|, direction = a</p>
+        <p>Vector b (green): length = |b|, direction = b</p>
+        <p>Cross product c = a × b (blue)</p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // 初始化场景、相机和渲染器
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 添加轨道控制器
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        camera.position.set(5, 5, 5);
+        controls.update();
+
+        // 添加坐标轴辅助
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+
+        // 添加光源
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        // 定义向量a和b
+        const a = new THREE.Vector3(2, 0, 0);  // 红色向量
+        const b = new THREE.Vector3(0, 2, 0);  // 绿色向量
+
+        // 计算叉积 c = a × b
+        const c = new THREE.Vector3();
+        c.crossVectors(a, b);
+
+        // 创建箭头辅助表示向量
+        const arrowA = new THREE.ArrowHelper(
+            a.clone().normalize(),
+            new THREE.Vector3(0, 0, 0),
+            a.length(),
+            0xff0000,  // 红色
+            0.3, 0.2
+        );
+        scene.add(arrowA);
+
+        const arrowB = new THREE.ArrowHelper(
+            b.clone().normalize(),
+            new THREE.Vector3(0, 0, 0),
+            b.length(),
+            0x00ff00,  // 绿色
+            0.3, 0.2
+        );
+        scene.add(arrowB);
+
+        const arrowC = new THREE.ArrowHelper(
+            c.clone().normalize(),
+            new THREE.Vector3(0, 0, 0),
+            c.length(),
+            0x0000ff,  // 蓝色
+            0.3, 0.2
+        );
+        scene.add(arrowC);
+
+        // 添加平面表示a和b张成的平面
+        const planeGeometry = new THREE.PlaneGeometry(5, 5);
+        const planeMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffff00,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.3
+        });
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = Math.PI / 2;
+        scene.add(plane);
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 更新箭头位置和方向
+            arrowA.setDirection(a.clone().normalize());
+            arrowA.setLength(a.length(), 0.3, 0.2);
+
+            arrowB.setDirection(b.clone().normalize());
+            arrowB.setLength(b.length(), 0.3, 0.2);
+
+            c.crossVectors(a, b);
+            arrowC.setDirection(c.clone().normalize());
+            arrowC.setLength(c.length(), 0.3, 0.2);
+
+            // 旋转向量a和b来演示不同情况
+            const time = Date.now() * 0.001;
+            a.x = 2 * Math.cos(time * 0.5);
+            a.z = 2 * Math.sin(time * 0.5);
+            b.y = 2 * Math.cos(time * 0.3);
+            b.z = 2 * Math.sin(time * 0.3);
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
